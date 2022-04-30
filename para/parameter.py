@@ -24,7 +24,8 @@ class Parameter:
         self.parser.add_argument('--resume_file', type=str, default='', help='the path of checkpoint file for resume')
 
         # data parameters
-        self.parser.add_argument('--data_root', type=str, default='/home/zhong/Dataset/', help='the path of dataset')
+        #self.parser.add_argument('--data_root', type=str, default='/home/zhong/Dataset/', help='the path of dataset')
+        self.parser.add_argument('--data_root', type=str, default='Dataset/', help='the path of dataset')
         self.parser.add_argument('--dataset', type=str, default='BSD', help='BSD, gopro_ds_lmdb, reds_lmdb')
         self.parser.add_argument('--save_dir', type=str, default='./experiment/',
                                  help='directory to save logs of experiments')
