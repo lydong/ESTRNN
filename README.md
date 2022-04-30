@@ -43,8 +43,8 @@ Quantitative results on different setups of BSD:
 
 ### Prerequisites
 
-- Python 3.6
-- PyTorch 1.6 with GPU
+- Python 3.6 #3.8 is tested to work
+- PyTorch 1.6 with GPU # 1.7.1 is tested to work
 - opencv-python
 - scikit-image
 - lmdb
