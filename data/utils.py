@@ -19,11 +19,17 @@ class Crop(object):
     def __call__(self, sample):
         image, label = sample['image'], sample['label']
         top, left = sample['top'], sample['left']
-        new_h, new_w = self.output_size
-        sample['image'] = image[top: top + new_h,
-                          left: left + new_w]
-        sample['label'] = label[top: top + new_h,
-                          left: left + new_w]
+        lrtop, lrleft = top//4, left//4
+        hrtop, hrleft = lrtop*4, lrleft*4
+        #new_h, new_w = self.output_size
+        hr_h, hr_w = self.output_size
+        lr_h, lr_w = hr_h//4, hr_w//4
+        #sample['image'] = image[top: top + new_h,
+        #                  left: left + new_w]
+        sample['image'] = image[lrtop: lrtop + lr_h,
+                          lrleft: lrleft + lr_w]
+        sample['label'] = label[hrtop: hrtop + hr_h,
+                          hrleft: hrleft + hr_w]
 
         return sample
 
