@@ -1,43 +1,9 @@
-# ESTRNN & BSD
+# ESTRNN for Super Resolution
+
+This work is based on:
 Efficient Spatio-Temporal Recurrent Neural Network for Video Deblurring (ECCV2020 Spotlight)
 [Conference version (old BSD dataset)](https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123510188.pdf) 
-
-Real-world Video Deblurring: A Benchmark Dataset and An Efficient Spatio-Temporal Recurrent Neural Network
-[Journal version (under review; new BSD dataset)](https://arxiv.org/abs/2106.16028)
-
 by Zhihang Zhong, Ye Gao, Yinqiang Zheng, Bo Zheng, Imari Sato
-
-This work presents an efficient RNN-based model and **the first real-world dataset for video deblurring** :-)
-
-## Visual Results
-
-### Results on REDS (Synthetic)
-![image](https://github.com/zzh-tech/Images/blob/master/ESTRNN/reds.gif)
-
-
-### Results on GOPRO (Synthetic)
-![image](https://github.com/zzh-tech/Images/blob/master/ESTRNN/gopro.gif)
-
-
-### Results on BSD (Real-world)
-![image](https://github.com/zzh-tech/Images/blob/master/ESTRNN/bsd.gif)
-
-
-## Beam-Splitter Deblurring Dataset (BSD)
-
-We have collected a new real-world video deblurring dataset ([BSD](https://drive.google.com/file/d/19cel6QgofsWviRbA5IPMEv_hDbZ30vwH/view?usp=sharing)) with more scenes and better setups (center-aligned), using the proposed beam-splitter acquisition system:
-
-![image](https://github.com/zzh-tech/Images/blob/master/ESTRNN/bsd_system.png)
-![image](https://github.com/zzh-tech/Images/blob/master/ESTRNN/bsd_demo.gif)
-
-The configurations of the new BSD dataset are as below:
-
-<img src="https://github.com/zzh-tech/Images/blob/master/ESTRNN/bsd_config.png" alt="bsd_config" width="450"/>
-
-Quantitative results on different setups of BSD:
-
-<img src="https://github.com/zzh-tech/Images/blob/master/ESTRNN/results_on_bsd.png" alt="bsd_config" width="600"/>
-
 
 ## Quick Start
 
@@ -52,61 +18,51 @@ Quantitative results on different setups of BSD:
 - tqdm
 - tensorboard
 
-### Downloading Datasets
+### Data Set
+- [REDS](https://seungjunnah.github.io/Datasets/reds.html),
+I used "Sharp" + "Low resolution"
 
-Please download and unzip the dataset file for each benchmark.
+### Avaible checkpoints
+TO-DO
 
-- [**BSD**](https://drive.google.com/file/d/19cel6QgofsWviRbA5IPMEv_hDbZ30vwH/view?usp=sharing)
-- [GOPRO](https://drive.google.com/file/d/1Tni2gZzI_Hd03Msc8Rrxl5JklznqO9AG/view?usp=sharing)
-- [REDS](https://drive.google.com/file/d/1wMOtIqmnNfXqe0_-Xq0Xj6WMspCaEgRR/view?usp=sharing)
+### Testing/Inference
+```bash
+python main.py --data_root <Your Root Path> --dataset REDS_png --model ESTRNN_SRx4 --n_blocks 15 --n_features 16
+--test_only --test_checkpoint <Your Checkpoint Path>
+--num_gpus 2 --batch_size 8 --threads 16
+```
+
+Please change parameters according to your hardware. 
+Note that for testing, please store your test image sequences in the following way:
+"*Your Root Path/REDS_png/valid/valid_sharp/seq num/img num.png*"
+and 
+"*Your Root Path/REDS_png/valid/valid_sharp_bicubic/X4/seq num/img num.png*"
+where "*seq num*" is the index of the sequence, "*img num*" is the index of a image inside. 
+
+For example,
+"*Your Root Path/REDS_png/valid/valid_sharp/006/066.png*" and 
+"*Your Root Path/REDS_png/valid/valid_sharp/006/066.png*".
+
+Note that this version is hardcoded to inference sequences with 100 images. 
+If you want to modify the testing pipeline, please go to function _test_torch_SR in "*train/test.py*"  and help yourself.
+When GT is not obtainable, simply comment out those lines that load such image and make comparisons (e.g., PSNR, SSIM).
 
 ### Training
+Similar to testing, store your training sequences in this way:
+"*Your Root Path/REDS_png/train/train_sharp/seq num/img num.png*"
+and 
+"*Your Root Path/REDS_png/train/train_sharp_bicubic/X4/seq num/img num.png*"
 
-Specify *\<path\>* (e.g. "*./dataset/*") as where you put the dataset file.
-
-Modify the corresponding dataset configurations in the command, or change the default values in "*./para/paramter.py*". 
-
-Training command is as below:
-
+To reproduce our mid-size model, use the following command:
 ```bash
-python main.py --data_root <path> --dataset BSD --ds_config 2ms16ms
-```
-
-You can also tune the hyper-parameters such as batch size, learning rate, epoch number (P.S.: the actual batch size for ddp mode is num_gpus*batch_size):
-
-```bash
-python main.py --lr 1e-4 --batch_size 4 --num_gpus 2 --trainer_mode ddp
-```
-
-If you want to train on your own dataset, please refer to "*/data/how_to_make_dataset_file.ipynb*".
-
-### Inference
-
-Please download [checkpoints](https://drive.google.com/file/d/1n39u16UP5FUe04NDK-rpiBQtjUHibyRf/view?usp=sharing) of pretrained models for different setups and unzip them under the main directory.
-
-#### Dataset (Test Set) Inference
-
-Command to run a pre-trained model on BSD (3ms-24ms):
-
-```bash
-python main.py --test_only --test_checkpoint ./checkpoints/ESTRNN_C80B15_BSD_3ms24ms.tar --dataset BSD --ds_config 3ms24ms --video
-```
-
-#### Blurry Video Inference
-
-Specify **"--src \<path\>"** as where you put the blurry video file (e.g., "--src ./blur.mp4") or video directory (e.g., "--src ./blur/", the image files under the directory should be indexed as "./blur/00000000.png", "./blur/00000001.png", ...).
-
-Specify **"--dst \<path\>"** as where you store the results (e.g., "--dst ./results/").
-
-Command to run a pre-trained model for a blurry video is as below:
-
-```bash
-python inference.py --src <path> --dst <path> --ckpt ./checkpoints/ESTRNN_C80B15_BSD_2ms16ms.tar
+python main.py --data_root <Your Root Path> --dataset REDS_png --model ESTRNN_SRx4 
+--end_epoch 240  --n_blocks 15 --n_features 20 --max_grad 26 --lr 2e-4 --learning_cycle 1
+--num_gpus 2 --threads 16 --batch_size 8 
 ```
 
 ## Citing
 
-If you use any part of our code, or ESTRNN and BSD are useful for your research, please consider citing:
+If you use any part of our code, or ESTRNN and BSD are useful for your research, please consider citing original authors:
 
 ```bibtex
 @inproceedings{zhong2020efficient,
